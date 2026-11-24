@@ -1,48 +1,30 @@
-import { mkdirSync, readdirSync } from 'node:fs';
-import { basename, extname } from 'node:path';
+import { mkdir, readdir } from 'node:fs/promises';
 import sharp from 'sharp';
-
-const SRC = 'src/assets/images-src';
-const OUT = 'public/assets';
-const WIDTHS = [400, 800];
-mkdirSync(SRC, { recursive: true });
-mkdirSync(OUT, { recursive: true });
-
-let files = readdirSync(SRC).filter((f) => /\.(jpe?g|png)$/i.test(f));
-if (files.length === 0) {
-  const names = [
-    ...Array.from({ length: 9 }, (_, i) => `work-0${i + 1}`),
-    ...Array.from({ length: 4 }, (_, i) => `journal-0${i + 1}`),
-    'avatar-01',
-  ];
-  await Promise.all(
-    names.map((n, i) =>
-      sharp({
-        create: {
-          width: 800,
-          height: 632,
-          channels: 3,
-          background: { h: (i * 37) % 360, s: 55, l: 60 },
-        },
-      })
-        .jpeg()
-        .toFile(`${SRC}/${n}.jpg`),
-    ),
-  );
-  files = readdirSync(SRC);
-}
-
-for (const file of files) {
-  const name = basename(file, extname(file));
-  for (const w of WIDTHS) {
-    const img = () => sharp(`${SRC}/${file}`).resize({ width: w });
+const source = new URL('../src/assets/images/', import.meta.url);
+const output = new URL('../public/images/', import.meta.url);
+await mkdir(output, { recursive: true });
+for (const file of await readdir(source)) {
+  if (!file.endsWith('.png')) continue;
+  const input = new URL(file, source).pathname;
+  const { width } = await sharp(input).metadata();
+  for (const scale of [1, 2]) {
+    const image = sharp(input).resize({
+      width: Math.round((width * scale) / 2),
+    });
+    const name = new URL(file.replace('.png', `-${scale}x`), output).pathname;
     await Promise.all([
-      img().avif({ quality: 50 }).toFile(`${OUT}/${name}-${w}.avif`),
-      img().webp({ quality: 75 }).toFile(`${OUT}/${name}-${w}.webp`),
-      img()
-        .jpeg({ quality: 80, mozjpeg: true })
-        .toFile(`${OUT}/${name}-${w}.jpg`),
+      image
+        .clone()
+        .avif({ quality: 55 })
+        .toFile(name + '.avif'),
+      image
+        .clone()
+        .webp({ quality: 82 })
+        .toFile(name + '.webp'),
+      image
+        .clone()
+        .jpeg({ quality: 88 })
+        .toFile(name + '.jpg'),
     ]);
   }
-  console.log('✔', name);
 }
