@@ -1,138 +1,99 @@
-# Landing-bang-olufsen
+# Лабораторна робота №10 — Bang & Olufsen
 
-Лендінг Keepsake з лабораторної роботи №7, перенесений на сучасний робочий процес фронтенд-розробки: Pug-шаблони, модульна SCSS-архітектура, PostCSS (Autoprefixer), оптимізовані зображення (AVIF/WebP/JPEG), автоматичний контроль якості коду та деплой на GitHub Pages.
+Номер у списку: **13**. Варіант макета: **1**, оскільки `(13 − 1) % 3 + 1 = 1`. Методологія: **BEM + SMACSS**.
 
-**Демо:** https://Oleh-0-0.github.io/landing-bang-olufsen/
+- [Опублікована сторінка](https://github.com/Oleh-0-0/landing-bang-olufsen)
+- [Макет Figma — сторінка B&O](https://www.figma.com/design/xIVUXiPZ3hdpEFiIC0qbTL/BOSE-New-Version)
+- [Умова роботи](https://github.com/Computer-Science-Department-ChNU/web-technologies/blob/main/html-css/labs/lab-10/lab-10.adoc)
 
-## Вимоги до середовища
+## Запуск
 
-- Node.js LTS, версія не нижче 20 (`node -v`)
-- npm (`npm -v`)
-- Git
+Потрібен Node.js 24.15 або новіший підтримуваний випуск.
 
-## Команди
-
-| Команда           | Призначення                                            |
-| ----------------- | ------------------------------------------------------ |
-| `npm install`     | Встановлення залежностей                               |
-| `npm run dev`     | Сервер розробки Vite з гарячим оновленням              |
-| `npm run build`   | Продакшн-збірка у папку `dist`                         |
-| `npm run preview` | Локальний перегляд зібраного сайту                     |
-| `npm run images`  | Генерація AVIF/WebP/JPEG у кількох ширинах (sharp)     |
-| `npm run format`  | Форматування всього проєкту Prettier                   |
-| `npm run lint`    | Перевірка стилів (Stylelint) і форматування (Prettier) |
-
-## Структура проєкту
-
-```text
-landing-keepsake-vite/
-├── .husky/
-│   └── pre-commit
-├── .github/
-│   └── workflows/
-│       └── deploy.yml
-├── src/
-│   ├── assets/
-│   │   ├── images/          # AVIF, WebP, JPEG у кількох ширинах
-│   │   └── fonts/           # WOFF2
-│   ├── components/          # header.pug, footer.pug, sections/*.pug
-│   ├── data/                # дані секцій (масиви об'єктів)
-│   ├── includes/            # head, meta, fonts, svg-спрайт
-│   ├── layouts/
-│   │   └── main.pug         # базовий макет
-│   ├── mixins/              # Pug-міксини
-│   ├── pages/
-│   │   └── index.pug
-│   └── styles/
-│       ├── abstracts/       # змінні, функції, міксини (_index.scss з @forward)
-│       ├── base/            # reset, типографіка, шрифти
-│       ├── layout/          # контейнер, секції, header, footer
-│       ├── components/      # один БЕМ-блок: один файл
-│       └── main.scss        # єдина точка входу
-├── .browserslistrc
-├── .prettierrc
-├── .prettierignore
-├── .stylelintrc.json
-├── postcss.config.js
-├── vite.config.js
-└── package.json
+```sh
+npm install
+npm run dev
+npm run build
+npm run preview
+npm run lint
+npm run format
+npm run images
 ```
 
-> Якщо фактична структура відрізняється, відкоригуйте дерево вище.
+`dev` запускає локальний сервер; `build` створює `dist`; `preview` показує збірку. `lint` перевіряє SCSS і форматування, `format` форматує файли, `images` генерує оптимізовані зображення з `src/images`. Після встановлення залежностей Husky запускає lint-staged перед комітом.
 
-## Архітектура
+## Завдання 1. Декомпозиція на BEM-блоки
 
-### Pug
+Розмітка: [src/pages/index.pug](src/pages/index.pug), спільний документ: [src/layouts/main.pug](src/layouts/main.pug). Повторювані картки та зображення винесено в [src/mixins](src/mixins), дані товарів і категорій — у [src/data](src/data).
 
-- **Макет** `layouts/main.pug` містить блоки `meta`, `title`, `styles`, `content`, `scripts`. Сторінка `pages/index.pug` успадковує його через `extends` і перевизначає блоки; додатковий вміст додається через `append` / `prepend`.
-- **Компоненти**: шапка, футер і кожна секція лендінгу це окремі файли, підключені через `include`.
-- **Дані** (навігація, категорії фільтра, роботи, послуги, статистика, записи журналу, посилання футера, соцмережі) винесені в `src/data/` у вигляді масивів об'єктів і виводяться через `each item, i in items`. Розмітка кожної картки пишеться один раз.
-- **Міксини** (`src/mixins/`): `+btn`, `+icon`, `+picture`, `+work-card`. Вони використовують `block`, `&attributes`, `if` / `unless` та `case` / `when`.
-- Службові коментарі пишуться як `//-` і не потрапляють у HTML.
+Блоки: `header`, `hero`, `menu`, `recommended`, `product-card`, `categories`, `category`, `timeless`, `contacts`, `contact-form`, `button`, `section-title`. Класи елементів мають вигляд `product-card__image`, модифікаторів — `button--dark`. Мікси `l-page__contacts` та інші задають зовнішнє розташування блоків.
 
-### SCSS
+## Завдання 2. Архітектура стилів
 
-- Лише `@use` і `@forward`; `@import` не використовується. Кожна папка має `_index.scss`, що реекспортує partials. `main.scss` єдина точка входу, підключена в `layouts/main.pug`.
-- Дизайн-токени (кольори, шрифти, відступи, брейкпоінти) оголошені як SCSS-змінні та map-и в `abstracts/`. Кольори генеруються у CSS custom properties в `:root` через `@each`.
-- Міксин `mq()` приймає значення з map-а брейкпоінтів, підхід mobile first (лише `min-width`).
-- Власні функції (наприклад, `rem()` на базі `sass:math`) та допоміжні міксини.
-- Іменування за БЕМ: `block__element--modifier`, один блок один файл. Вкладеність не глибша 3 рівнів, без `id` та `!important`.
-- Вендорні префікси вручну не пишуться: їх додає Autoprefixer.
+Точка входу: [src/styles/main.scss](src/styles/main.scss). Порядок SMACSS:
 
-## Використані інструменти
+| Категорія    | Папка       | Призначення                                       |
+| ------------ | ----------- | ------------------------------------------------- |
+| Налаштування | `abstracts` | SCSS-токени та міксини медіазапитів               |
+| Base         | `base`      | Скидання, шрифти, базові тегові правила           |
+| Layout       | `layout`    | Контейнер, сітка, зовнішні відступи; префікс `l-` |
+| Modules      | `modules`   | Окремий SCSS-файл для кожного BEM-блока           |
+| State        | `state`     | Доступність і стани, префікс `is-`                |
+| Theme        | `theme`     | Кольорові CSS-змінні                              |
 
-| Інструмент                      | Для чого                                                       |
-| ------------------------------- | -------------------------------------------------------------- |
-| Vite                            | Dev-сервер і збирання проєкту                                  |
-| Vituum + Pug plugin             | Генерація HTML із Pug-шаблонів                                 |
-| Pug                             | Шаблонізатор (extends, include, mixins, each)                  |
-| Sass (Dart Sass)                | Препроцесор CSS, модульна архітектура                          |
-| PostCSS + Autoprefixer          | Автоматичні вендорні префікси                                  |
-| Browserslist                    | Опис цільових браузерів для Autoprefixer                       |
-| sharp                           | Генерація AVIF/WebP/JPEG у кількох розмірах (`npm run images`) |
-| Prettier + @prettier/plugin-pug | Єдине форматування коду, включно з `.pug`                      |
-| Stylelint                       | Перевірка SCSS, правила БЕМ і обмеження вкладеності            |
-| husky + lint-staged             | Pre-commit хук: перевірка та форматування лише змінених файлів |
-| GitHub Actions                  | Автоматична збірка і публікація на GitHub Pages                |
+У блоках немає ID-селекторів і `!important`. Stylelint контролює іменування класів та вкладеність до трьох рівнів. Prettier, Husky й lint-staged підтримують узгоджений стиль коду. Autoprefixer застосовується під час збірки відповідно до Browserslist.
 
-## Цільові браузери (Browserslist)
+## Завдання 3. Модульна сітка
 
-```text
-<вставте вміст .browserslistrc, наприклад:>
-last 2 Chrome versions
-last 2 Firefox versions
-last 2 Edge versions
-last 2 Safari versions
-last 2 iOS versions
-```
+Реалізація: [src/styles/layout/_l-grid.scss](src/styles/layout/_l-grid.scss), [src/styles/layout/_l-container.scss](src/styles/layout/_l-container.scss).
 
-Фактичний список браузерів можна переглянути командою `npx browserslist`.
+| Ширина      | Колонки | Проміжок | Поля                    |
+| ----------- | ------- | -------- | ----------------------- |
+| 320–743 px  | 2       | 20 px    | 20 px                   |
+| 744–1259 px | 6       | 24 px    | 72 px                   |
+| від 1260 px | 12      | 24 px    | 120 px на кадрі 1260 px |
 
-## Оптимізація
+Максимальна ширина контенту — 1020 px. На ширших екранах контейнер центрується. У галереї B&O фотографії займають по 6 колонок на десктопі, по 3 на планшеті й по 1 на телефоні. Товари на планшеті займають усі 6 колонок, на десктопі — по 4.
 
-Порівняння розміру ресурсів (до / після оптимізації):
+## Завдання 4. Ресурси та адаптивність
 
-| Ресурс             | До оптимізації (оригінальні JPEG) | Після оптимізації (AVIF / WebP / адаптивні розміри) |
-| ------------------ | --------------------------------- | --------------------------------------------------- |
-| Портфоліо (робота) | 3,2 KB (JPEG)                     | ~0,4 KB (AVIF 400w) / ~1,8 KB (AVIF 800w)           |
-| Прев'ю журналу     | 3,2 KB (JPEG)                     | ~0,4 KB (AVIF) / ~1,8 KB (WebP)                     |
-| CSS-файли          | ~15,8 KB (немініфіковані)         | ~13 KB (мініфіковані Vite / esbuild)                |
+Зображення й іконки експортовано з макета; оригінали фотографій містяться в `src/images`, підготовлені ресурси — у `public/images`. Локальний шрифт — Manrope. Основні параметри: колір тексту `#1b2129`, акцент `#f98921`, фон інформаційного блока `#fcfaef`, основний текст 16 px з міжрядковим інтервалом 140%.
 
-Мініфікацію CSS під час `npm run build` виконує Vite (esbuild), а вендорні префікси додає Autoprefixer.
+`picture` використовує AVIF, WebP і JPEG, `srcset` із ширинами та `sizes`. Для різних кадрів використано окреме кадрування. Hero завантажується з високим пріоритетом, нижні фотографії — ліниво. Розміри зображень задано явно. Меню відкривається через `:target`, без клієнтського JavaScript. Посилання, поля та кнопки мають стани фокуса; поля — підписи та стандартну HTML-валідацію. Форма демонстраційна, сервер обробки не підключено.
 
-## Контроль якості коду
+## Завдання 5. Звіряння з макетом
 
-Перед кожним комітом хук `pre-commit` запускає `lint-staged`:
+Еталони Figma збережено в [docs/reference](docs/reference). Знімки сторінок і накладання з прозорістю 50% дозволяють порівняти розміри, позиції та відступи. Накладання створені зі скриншотів і експортів Figma, без розтягування сторінки.
 
-- `*.scss`: `stylelint --fix` і `prettier --write`
-- `*.{pug,js,json,md}`: `prettier --write`
+| Ширина  | Сторінка                                   | Накладання                                      |
+| ------- | ------------------------------------------ | ----------------------------------------------- |
+| 320 px  | [Скриншот](docs/screenshots/page-320.jpg)  | [Накладання](docs/screenshots/overlay-320.jpg)  |
+| 744 px  | [Скриншот](docs/screenshots/page-744.jpg)  | [Накладання](docs/screenshots/overlay-744.jpg)  |
+| 1260 px | [Скриншот](docs/screenshots/page-1260.jpg) | [Накладання](docs/screenshots/overlay-1260.jpg) |
 
-Коміт із помилкою Stylelint (наприклад, клас `.Card_Title` або порожній блок) блокується.
+![Накладання 1260 px](docs/screenshots/overlay-1260.jpg)
 
-## Деплой
+[Відкрите мобільне меню](docs/screenshots/menu-320.jpg). Перевірено відкривання меню та перехід до секції клавіатурою, завантаження зображень і відсутність горизонтального переповнення на трьох контрольних ширинах.
 
-Сайт публікується на GitHub Pages через GitHub Actions (`.github/workflows/deploy.yml`) при кожному пуші в гілку `main`. Папка `dist` у репозиторій не комітиться, її збирає workflow.
+## Завдання 6. Валідація та PageSpeed
 
-У `vite.config.js` вказано `base: '/landing-keepsake-vite/'`, щоб стилі та зображення правильно завантажувалися на GitHub Pages.
+W3C: **0 помилок, 0 попереджень**. [Перевірити опубліковану сторінку](https://validator.w3.org/nu/?doc=https%3A%2F%2Fhlavachuk.github.io%2Flanding-bang-olufsen%2F). [Машинний звіт перевірки HTML](docs/checks/w3c-source.json).
 
-Налаштування: **Settings → Pages → Source: GitHub Actions**.
+![W3C Validator](docs/screenshots/w3c-validator.jpg)
+
+[Звіт PageSpeed Insights](https://pagespeed.web.dev/analysis/https-hlavachuk-github-io-landing-bang-olufsen/ou48dl1mbzcz65wt6qe566?form_factor=mobile).
+
+| Режим   | Performance | Accessibility | Best Practices | SEO |
+| ------- | ----------- | ------------- | -------------- | --- |
+| Mobile  | 100         | 95            | 100            | 100 |
+| Desktop | 100         | 95            | 100            | 100 |
+
+Оцінки зафіксовані під час перевірки; повторний запуск може дати інші значення. Оцінка доступності 95 пов’язана з контрастністю окремих кольорів оригінального макета.
+
+![PageSpeed Mobile](docs/screenshots/pagespeed-mobile.jpg)
+
+![PageSpeed Desktop](docs/screenshots/pagespeed-desktop.jpg)
+
+## Завдання 7. Публікація
+
+[GitHub Actions](.github/workflows/pages.yml) встановлює залежності через `npm ci`, перевіряє код, збирає сайт і публікує `dist` у GitHub Pages. У `vite.config.js` задано базовий шлях `/landing-bang-olufsen/`. `node_modules` та `dist` виключено з репозиторію, `package-lock.json` збережено.
