@@ -2,7 +2,7 @@
 
 Номер у списку: **13**. Варіант макета: **1**, оскільки `(13 − 1) % 3 + 1 = 1`. Методологія: **BEM + SMACSS**.
 
-- [Опублікована сторінка](https://github.com/Oleh-0-0/landing-bang-olufsen)
+- [Опублікована сторінка](https://oleh-0-0.github.io/landing-bang-olufsen/?utm_source=chatgpt.comn)
 - [Макет Figma — сторінка B&O](https://www.figma.com/design/xIVUXiPZ3hdpEFiIC0qbTL/BOSE-New-Version)
 - [Умова роботи](https://github.com/Computer-Science-Department-ChNU/web-technologies/blob/main/html-css/labs/lab-10/lab-10.adoc)
 
